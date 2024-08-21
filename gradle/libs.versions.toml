@@ -12,7 +12,7 @@ lifecycleRuntimeKtx = "2.8.4"
 activityCompose = "1.9.1"
 composeBom = "2024.06.00"
 loggingInterceptor = "4.9.3"
-moshi = "1.15.1"
+moshi = "2.9.0"
 navigationCompose = "2.8.0-beta06"
 koinAndroid = "3.5.6"
 koinAndroidxCompose = "3.4.6"
@@ -50,7 +50,7 @@ androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-view
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
-moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
+moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "moshi" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 
