@@ -19,7 +19,8 @@
         <activity
             android:name=".main.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.NewsApp">
+            android:theme="@style/Theme.NewsApp"
+            android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

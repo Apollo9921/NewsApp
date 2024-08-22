@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
     kotlin("plugin.serialization") version "1.9.23"
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -25,9 +26,11 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "BASE_URL", "\"https://newsapi.org/v2/\"")
+            buildConfigField("String", "API_KEY", "\"4a56aebd03d04639b7b2add14f7b6eee\"")
         }
         release {
             buildConfigField("String", "BASE_URL", "\"https://newsapi.org/v2/\"")
+            buildConfigField("String", "API_KEY", "\"4a56aebd03d04639b7b2add14f7b6eee\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

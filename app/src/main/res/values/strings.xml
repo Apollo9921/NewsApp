@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NewsApp</string>
+    <string name="app_name">News App</string>
     <string name="biometricTitle">Biometric Authentication</string>
     <string name="biometricSubtitle">Log in using your biometric credential</string>
     <string name="biometricNegativeButtonText">Exit from the app</string>

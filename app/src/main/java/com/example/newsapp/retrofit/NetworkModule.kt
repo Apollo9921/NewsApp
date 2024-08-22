@@ -4,8 +4,8 @@ import com.example.newsapp.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
-import retrofit2.converter.moshi.MoshiConverterFactory
 
 class NetworkModule {
     fun retrofitInterface(): RetrofitInterface {
@@ -20,7 +20,7 @@ class NetworkModule {
         return Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(client.build())
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(RetrofitInterface::class.java)
     }
