@@ -98,4 +98,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     // Biometric
     implementation(libs.androidx.biometric)
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
 }

@@ -7,14 +7,18 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.navigation.compose.rememberNavController
 import com.example.newsapp.main.MainViewModel
 import com.example.newsapp.R
+import com.example.newsapp.navigation.NavGraph
 
+private var isSuccess = mutableStateOf(false)
 
 @Composable
 fun CheckIfBiometricIsAvailable(mainViewModel: MainViewModel) {
@@ -28,34 +32,24 @@ fun CheckIfBiometricIsAvailable(mainViewModel: MainViewModel) {
             CheckAuthentication(context, mainViewModel)
         }
 
-        BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
-            // No biometric features available on this device
-        }
-
-        BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
-            // Biometric features are currently unavailable.
-        }
-
-        BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
-            // Biometric features available but a security vulnerability has been discovered
-        }
-
-        BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
-            // Biometric features are currently unavailable because the specified options are incompatible with the current Android version..
-        }
-
-        BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> {
-            // Unable to determine whether the user can authenticate using biometrics
-        }
-
-        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-            // The user can't authenticate because no biometric or device credential is enrolled.
+        else -> {
+            // Biometric features are not available.
+            OpenHomeScreen()
         }
     }
 }
 
 @Composable
 private fun CheckAuthentication(context: Context, mainViewModel: MainViewModel) {
+    if (isSuccess.value) {
+        OpenHomeScreen()
+    } else {
+        OpenBiometricPrompt(context, mainViewModel)
+    }
+}
+
+@Composable
+private fun OpenBiometricPrompt(context: Context, mainViewModel: MainViewModel) {
     val executor = remember { ContextCompat.getMainExecutor(context) }
     val biometricPrompt = BiometricPrompt(
         context as FragmentActivity,
@@ -69,14 +63,20 @@ private fun CheckAuthentication(context: Context, mainViewModel: MainViewModel) 
                         // User clicked the "Exit from the app" button
                         mainViewModel.closeApp()
                     }
+
                     BiometricPrompt.ERROR_USER_CANCELED -> {
                         // User canceled the authentication process
                         mainViewModel.closeApp()
                     }
+
                     else -> {
                         // handle other authentication errors here
                         mainViewModel.closeApp()
-                        Toast.makeText(context, "Authentication error: $errString", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Authentication error: $errString",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
@@ -84,11 +84,10 @@ private fun CheckAuthentication(context: Context, mainViewModel: MainViewModel) 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 super.onAuthenticationSucceeded(result)
                 // handle authentication success here
-                Toast.makeText(context, "Authentication succeeded", Toast.LENGTH_SHORT).show()
+                isSuccess.value = true
             }
         }
     )
-
     val title = stringResource(R.string.biometricTitle)
     val subtitle = stringResource(R.string.biometricSubtitle)
     val negativeButtonText = stringResource(R.string.biometricNegativeButtonText)
@@ -101,4 +100,10 @@ private fun CheckAuthentication(context: Context, mainViewModel: MainViewModel) 
         .build()
 
     biometricPrompt.authenticate(promptInfo)
+}
+
+@Composable
+private fun OpenHomeScreen() {
+    val navController = rememberNavController()
+    NavGraph(navController = navController)
 }
