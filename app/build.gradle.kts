@@ -96,4 +96,6 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    // Biometric
+    implementation(libs.androidx.biometric)
 }
