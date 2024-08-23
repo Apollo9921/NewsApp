@@ -3,7 +3,7 @@ package com.example.newsapp.core
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,11 +35,11 @@ fun mediaQueryWidth(): Dp {
 }
 
 @Composable
-fun NoInternetConnection() {
+fun NoInternetConnection(padding: PaddingValues) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 20.dp),
+            .padding(top = padding.calculateTopPadding()),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -96,5 +96,48 @@ fun Loading() {
                     }
                 )
         )
+    }
+}
+
+@Composable
+fun NoResults(padding: PaddingValues) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = padding.calculateTopPadding()),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.no_image),
+                contentDescription = "No Results",
+                modifier = Modifier
+                    .size(
+                        if (mediaQueryWidth() < small) {
+                            100.dp
+                        } else if (mediaQueryWidth() < normal) {
+                            200.dp
+                        } else {
+                            300.dp
+                        }
+                    )
+            )
+            Text(
+                text = stringResource(id = R.string.noResults),
+                color = Black,
+                fontWeight = FontWeight.Bold,
+                fontSize =
+                if (mediaQueryWidth() < small) {
+                    15.sp
+                } else if (mediaQueryWidth() < normal) {
+                    20.sp
+                } else {
+                    25.sp
+                },
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }

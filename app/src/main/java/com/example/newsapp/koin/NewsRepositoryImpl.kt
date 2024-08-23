@@ -7,7 +7,7 @@ import retrofit2.Response
 class NewsRepositoryImpl(
     private val retrofitInterface: RetrofitInterface
 ): NewsRepository  {
-    override suspend fun getNews(apiKey: String): Response<News> {
-        return retrofitInterface.getNews(apiKey)
+    override suspend fun getNews(apiKey: String, sources: String): Response<News> {
+        return retrofitInterface.getNews(apiKey, sources)
     }
 }

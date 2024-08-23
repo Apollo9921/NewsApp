@@ -4,4 +4,7 @@
     <string name="biometricSubtitle">Log in using your biometric credential</string>
     <string name="biometricNegativeButtonText">Exit from the app</string>
     <string name="noInternetConnection">No Internet Connection</string>
+    <string name="search">Search for another source:</string>
+    <string name="searchEmpty">Search field is empty</string>
+    <string name="noResults">No Results Found</string>
 </resources>

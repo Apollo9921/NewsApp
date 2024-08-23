@@ -1,7 +1,8 @@
 package com.example.newsapp.ui
 
 import android.content.Context
-import android.content.res.Configuration
+import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,9 +20,16 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,11 +39,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -47,6 +56,7 @@ import com.example.newsapp.R
 import com.example.newsapp.core.Black
 import com.example.newsapp.core.Loading
 import com.example.newsapp.core.NoInternetConnection
+import com.example.newsapp.core.NoResults
 import com.example.newsapp.core.White
 import com.example.newsapp.core.mediaQueryWidth
 import com.example.newsapp.core.normal
@@ -61,19 +71,19 @@ import org.koin.androidx.compose.koinViewModel
 private lateinit var connectivityObserver: ConnectivityObserver
 private var applicationContext: Context? = null
 private lateinit var viewModel: HomeScreenViewModel
-private lateinit var orientation: Configuration
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
-    orientation = LocalConfiguration.current
     applicationContext = LocalContext.current.applicationContext
     connectivityObserver = NetworkConnectivityObserver(applicationContext ?: return)
     status = connectivityObserver.observe().collectAsState(
         initial = ConnectivityObserver.Status.Unavailable
     ).value
     viewModel = koinViewModel<HomeScreenViewModel>()
-    if (status == ConnectivityObserver.Status.Available && !viewModel.isSuccessful.value) {
+    val isConnected = rememberSaveable { mutableStateOf(false) }
+    if (status == ConnectivityObserver.Status.Available && !isConnected.value) {
         viewModel.getNews()
+        isConnected.value = true
     }
     Box(
         modifier = Modifier.padding(
@@ -86,7 +96,7 @@ fun HomeScreen(navController: NavHostController) {
         )
     ) {
         Scaffold(
-            topBar = { TopBar(orientation) }
+            topBar = { TopBar() }
         ) { padding ->
             GetNewsResponse(padding)
         }
@@ -94,51 +104,25 @@ fun HomeScreen(navController: NavHostController) {
 }
 
 @Composable
-private fun TopBar(configuration: Configuration) {
-    when (configuration.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Black.copy(alpha = 0.5f))
-                    .padding(start = 60.dp, top = 60.dp, end = 20.dp, bottom = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TopBarContent()
-            }
-        }
-
-        Configuration.ORIENTATION_PORTRAIT -> {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Black.copy(alpha = 0.5f))
-                    .padding(start = 20.dp, top = 60.dp, end = 20.dp, bottom = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TopBarContent()
-            }
-        }
-
-        else -> {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Black.copy(alpha = 0.5f))
-                    .padding(start = 20.dp, top = 60.dp, end = 20.dp, bottom = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TopBarContent()
-            }
-        }
+private fun TopBar() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Black.copy(alpha = 0.5f))
+            .padding(start = 20.dp, top = 60.dp, end = 20.dp, bottom = 20.dp),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TopBarContent()
     }
 }
 
 @Composable
 private fun TopBarContent() {
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val emptyField = stringResource(id = R.string.searchEmpty)
+    var search by rememberSaveable { mutableStateOf("") }
     Text(
         text = stringResource(id = R.string.app_name),
         color = White,
@@ -153,6 +137,63 @@ private fun TopBarContent() {
             25.sp
         }
     )
+    Spacer(modifier = Modifier.padding(10.dp))
+    TextField(
+        value = search,
+        onValueChange = {
+            search = it
+        },
+        maxLines = 1,
+        singleLine = true,
+        placeholder = {
+            Text(
+                text = stringResource(id = R.string.search),
+                color = Black,
+                fontWeight = FontWeight.W400,
+                fontSize =
+                if (mediaQueryWidth() < small) {
+                    12.sp
+                } else if (mediaQueryWidth() < normal) {
+                    17.sp
+                } else {
+                    22.sp
+                }
+            )
+        },
+        trailingIcon = {
+            IconButton(onClick = {
+                when {
+                    search.isEmpty() -> {
+                        Toast.makeText(context, emptyField, Toast.LENGTH_SHORT).show()
+                    }
+
+                    else -> {
+                        viewModel.getNews(search)
+                        search = ""
+                        focusManager.clearFocus()
+                    }
+                }
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = Black
+                )
+            }
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(
+            onSearch = {
+                if (search.isNotEmpty()) {
+                    viewModel.getNews(search)
+                    search = ""
+                    focusManager.clearFocus()
+                } else {
+                    Toast.makeText(context, emptyField, Toast.LENGTH_SHORT).show()
+                }
+            },
+        )
+    )
 }
 
 @Composable
@@ -165,7 +206,7 @@ private fun GetNewsResponse(padding: PaddingValues) {
         viewModel.isError.value -> {
             val message = viewModel.errorMessage.value
             if (message == "No internet connection") {
-                NoInternetConnection()
+                NoInternetConnection(padding)
             }
         }
 
@@ -204,6 +245,10 @@ private fun SaveDataAndDisplayNews(padding: PaddingValues) {
 @Composable
 private fun NewsList(newsList: News?, padding: PaddingValues) {
     val news = newsList?.articles?.sortedBy { it.publishedAt }
+    if (news?.isEmpty() == true) {
+        NoResults(padding)
+        return
+    }
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -222,43 +267,55 @@ private fun NewsList(newsList: News?, padding: PaddingValues) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    AsyncImage(
-                        model =
-                        if (news?.get(index)?.urlToImage != null) {
-                            ImageRequest.Builder(LocalContext.current)
+                    if (news?.get(index)?.urlToImage != null) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
                                 .data(news[index].urlToImage)
                                 .crossfade(true)
-                                .build()
-                        } else {
-                            painterResource(R.drawable.no_image)
-                        },
-                        contentDescription = null,
-                        placeholder = painterResource(R.drawable.no_image),
-                        error = painterResource(R.drawable.no_image),
-                        modifier = Modifier
-                            .size(
-                                if (mediaQueryWidth() < small) {
-                                    100.dp
-                                } else if (mediaQueryWidth() < normal) {
-                                    200.dp
-                                } else {
-                                    300.dp
-                                }
-                            )
-                    )
-                    Text(
-                        text = news?.get(index)?.source?.name ?: "",
-                        textAlign = TextAlign.Start,
-                        fontWeight = FontWeight.Bold,
-                        fontSize =
-                        if (mediaQueryWidth() < small) {
-                            12.sp
-                        } else if (mediaQueryWidth() < normal) {
-                            17.sp
-                        } else {
-                            20.sp
-                        }
-                    )
+                                .build(),
+                            contentDescription = null,
+                            placeholder = painterResource(R.drawable.no_image),
+                            error = painterResource(R.drawable.no_image),
+                            modifier = Modifier
+                                .size(
+                                    if (mediaQueryWidth() < small) {
+                                        100.dp
+                                    } else if (mediaQueryWidth() < normal) {
+                                        200.dp
+                                    } else {
+                                        300.dp
+                                    }
+                                )
+                        )
+                        Text(
+                            text = news[index].source.name,
+                            textAlign = TextAlign.Start,
+                            fontWeight = FontWeight.Bold,
+                            fontSize =
+                            if (mediaQueryWidth() < small) {
+                                12.sp
+                            } else if (mediaQueryWidth() < normal) {
+                                17.sp
+                            } else {
+                                20.sp
+                            }
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(R.drawable.no_image),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(
+                                    if (mediaQueryWidth() < small) {
+                                        100.dp
+                                    } else if (mediaQueryWidth() < normal) {
+                                        200.dp
+                                    } else {
+                                        300.dp
+                                    }
+                                )
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.padding(10.dp))
                 Column(

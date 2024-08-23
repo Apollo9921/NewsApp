@@ -6,6 +6,6 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface RetrofitInterface {
-    @GET("top-headlines?sources=bbc-news")
-    suspend fun getNews(@Query("apiKey") apiKey: String): Response<News>
+    @GET("top-headlines")
+    suspend fun getNews(@Query("apiKey") apiKey: String, @Query("sources") sources: String = "bbc-news"): Response<News>
 }

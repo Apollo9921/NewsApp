@@ -31,7 +31,11 @@ class HomeScreenViewModel(
         data class Error(val message: String) : NewsState()
     }
 
-     fun getNews() {
+    init {
+        getNews()
+    }
+
+     fun getNews(source: String = "bbc-news") {
         viewModelScope.launch {
             if (status == ConnectivityObserver.Status.Unavailable) {
                 _newsState.value = NewsState.Error("No internet connection")
@@ -39,7 +43,8 @@ class HomeScreenViewModel(
             }
             _newsState.value = NewsState.Loading
             try {
-                val response = newsRepository.getNews(BuildConfig.API_KEY)
+                val sourceNews = if (source.isNotEmpty()) source.replace(" ", "-") else source
+                val response = newsRepository.getNews(BuildConfig.API_KEY, sourceNews)
                 if (response.isSuccessful) {
                     _newsState.value = NewsState.Success(response.body())
                 } else {
