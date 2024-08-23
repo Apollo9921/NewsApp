@@ -4,11 +4,20 @@ import android.content.Context
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
@@ -24,12 +33,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.newsapp.R
 import com.example.newsapp.core.Black
 import com.example.newsapp.core.Loading
@@ -48,10 +61,11 @@ import org.koin.androidx.compose.koinViewModel
 private lateinit var connectivityObserver: ConnectivityObserver
 private var applicationContext: Context? = null
 private lateinit var viewModel: HomeScreenViewModel
+private lateinit var orientation: Configuration
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
-    val configuration = LocalConfiguration.current
+    orientation = LocalConfiguration.current
     applicationContext = LocalContext.current.applicationContext
     connectivityObserver = NetworkConnectivityObserver(applicationContext ?: return)
     status = connectivityObserver.observe().collectAsState(
@@ -61,10 +75,21 @@ fun HomeScreen(navController: NavHostController) {
     if (status == ConnectivityObserver.Status.Available && !viewModel.isSuccessful.value) {
         viewModel.getNews()
     }
-    Scaffold(
-        topBar = { TopBar(configuration) }
-    ) { padding ->
-        GetNewsResponse(padding)
+    Box(
+        modifier = Modifier.padding(
+            start = WindowInsets.navigationBars
+                .asPaddingValues()
+                .calculateStartPadding(LayoutDirection.Ltr),
+            end = WindowInsets.navigationBars
+                .asPaddingValues()
+                .calculateEndPadding(LayoutDirection.Ltr)
+        )
+    ) {
+        Scaffold(
+            topBar = { TopBar(orientation) }
+        ) { padding ->
+            GetNewsResponse(padding)
+        }
     }
 }
 
@@ -178,15 +203,98 @@ private fun SaveDataAndDisplayNews(padding: PaddingValues) {
 
 @Composable
 private fun NewsList(newsList: News?, padding: PaddingValues) {
+    val news = newsList?.articles?.sortedBy { it.publishedAt }
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = padding.calculateTopPadding()),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(
+                top = padding.calculateTopPadding(),
+                bottom = padding.calculateBottomPadding()
+            ),
+        horizontalAlignment = Alignment.Start
     ) {
-        items(newsList?.articles?.size ?: 0) { index ->
-            Text(text = newsList?.articles?.get(index)?.title ?: "")
-            Text(text = newsList?.articles?.get(index)?.description ?: "")
+        items(news?.size ?: 0) { index ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    AsyncImage(
+                        model =
+                        if (news?.get(index)?.urlToImage != null) {
+                            ImageRequest.Builder(LocalContext.current)
+                                .data(news[index].urlToImage)
+                                .crossfade(true)
+                                .build()
+                        } else {
+                            painterResource(R.drawable.no_image)
+                        },
+                        contentDescription = null,
+                        placeholder = painterResource(R.drawable.no_image),
+                        error = painterResource(R.drawable.no_image),
+                        modifier = Modifier
+                            .size(
+                                if (mediaQueryWidth() < small) {
+                                    100.dp
+                                } else if (mediaQueryWidth() < normal) {
+                                    200.dp
+                                } else {
+                                    300.dp
+                                }
+                            )
+                    )
+                    Text(
+                        text = news?.get(index)?.source?.name ?: "",
+                        textAlign = TextAlign.Start,
+                        fontWeight = FontWeight.Bold,
+                        fontSize =
+                        if (mediaQueryWidth() < small) {
+                            12.sp
+                        } else if (mediaQueryWidth() < normal) {
+                            17.sp
+                        } else {
+                            20.sp
+                        }
+                    )
+                }
+                Spacer(modifier = Modifier.padding(10.dp))
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = news?.get(index)?.title ?: "",
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.W600,
+                        fontSize =
+                        if (mediaQueryWidth() < small) {
+                            18.sp
+                        } else if (mediaQueryWidth() < normal) {
+                            23.sp
+                        } else {
+                            28.sp
+                        }
+                    )
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Text(
+                        text = news?.get(index)?.description ?: "",
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.W400,
+                        fontSize =
+                        if (mediaQueryWidth() < small) {
+                            13.sp
+                        } else if (mediaQueryWidth() < normal) {
+                            18.sp
+                        } else {
+                            23.sp
+                        }
+                    )
+                }
+            }
             HorizontalDivider(
                 color = Black,
                 thickness = 1.dp

@@ -103,4 +103,6 @@ dependencies {
     implementation(libs.androidx.biometric)
     // Serialization
     implementation(libs.kotlinx.serialization.json)
+    // Coil
+    implementation(libs.coil.compose)
 }
