@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,6 +65,7 @@ import com.example.newsapp.core.small
 import com.example.newsapp.core.status
 import com.example.newsapp.model.Article
 import com.example.newsapp.model.News
+import com.example.newsapp.navigation.Destination
 import com.example.newsapp.network.ConnectivityObserver
 import com.example.newsapp.network.NetworkConnectivityObserver
 import org.koin.androidx.compose.koinViewModel
@@ -273,7 +275,17 @@ private fun NewsList(newsList: News?, padding: PaddingValues, navController: Nav
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(20.dp)
+                    .clickable {
+                        navController.navigate(
+                            Destination.Detail(
+                                news?.get(index)?.urlToImage ?: "",
+                                news?.get(index)?.title ?: "",
+                                news?.get(index)?.description ?: "",
+                                news?.get(index)?.content ?: ""
+                            )
+                        )
+                    },
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
