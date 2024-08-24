@@ -98,7 +98,7 @@ fun HomeScreen(navController: NavHostController) {
         Scaffold(
             topBar = { TopBar() }
         ) { padding ->
-            GetNewsResponse(padding)
+            GetNewsResponse(padding, navController)
         }
     }
 }
@@ -122,6 +122,7 @@ private fun TopBarContent() {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val emptyField = stringResource(id = R.string.searchEmpty)
+    val noInternetConnection = stringResource(id = R.string.noInternetConnection)
     var search by rememberSaveable { mutableStateOf("") }
     Text(
         text = stringResource(id = R.string.app_name),
@@ -168,6 +169,11 @@ private fun TopBarContent() {
                     }
 
                     else -> {
+                        if (status == ConnectivityObserver.Status.Unavailable) {
+                            Toast.makeText(context, noInternetConnection, Toast.LENGTH_SHORT)
+                                .show()
+                            return@IconButton
+                        }
                         viewModel.getNews(search)
                         search = ""
                         focusManager.clearFocus()
@@ -185,6 +191,11 @@ private fun TopBarContent() {
         keyboardActions = KeyboardActions(
             onSearch = {
                 if (search.isNotEmpty()) {
+                    if (status == ConnectivityObserver.Status.Unavailable) {
+                        Toast.makeText(context, noInternetConnection, Toast.LENGTH_SHORT)
+                            .show()
+                        return@KeyboardActions
+                    }
                     viewModel.getNews(search)
                     search = ""
                     focusManager.clearFocus()
@@ -197,7 +208,7 @@ private fun TopBarContent() {
 }
 
 @Composable
-private fun GetNewsResponse(padding: PaddingValues) {
+private fun GetNewsResponse(padding: PaddingValues, navController: NavHostController) {
     when {
         viewModel.isLoading.value -> {
             Loading()
@@ -211,13 +222,13 @@ private fun GetNewsResponse(padding: PaddingValues) {
         }
 
         viewModel.isSuccessful.value -> {
-            SaveDataAndDisplayNews(padding)
+            SaveDataAndDisplayNews(padding, navController)
         }
     }
 }
 
 @Composable
-private fun SaveDataAndDisplayNews(padding: PaddingValues) {
+private fun SaveDataAndDisplayNews(padding: PaddingValues, navController: NavHostController) {
     val myDataSaver = Saver<News, Map<String, Any?>>(
         save = { myData ->
             mapOf(
@@ -239,11 +250,11 @@ private fun SaveDataAndDisplayNews(padding: PaddingValues) {
         mutableStateOf(News(emptyList(), "", 0))
     }
     newsList = viewModel.news.value ?: News(emptyList(), "", 0)
-    NewsList(newsList, padding)
+    NewsList(newsList, padding, navController)
 }
 
 @Composable
-private fun NewsList(newsList: News?, padding: PaddingValues) {
+private fun NewsList(newsList: News?, padding: PaddingValues, navController: NavHostController) {
     val news = newsList?.articles?.sortedBy { it.publishedAt }
     if (news?.isEmpty() == true) {
         NoResults(padding)
