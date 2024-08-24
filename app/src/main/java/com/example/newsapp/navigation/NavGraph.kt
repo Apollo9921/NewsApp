@@ -17,27 +17,20 @@ fun NavGraph(navController: NavHostController, startDestination: Destination = D
         navController = navController,
         startDestination = startDestination
     ) {
-        composable<Destination.Home>(
-            exitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { -it },
-                    animationSpec = tween(300)
-                )
-            }
-        ) {
+        composable<Destination.Home> {
             HomeScreen(navController)
         }
         composable<Destination.Detail>(
             enterTransition = {
                 slideInHorizontally(
                     initialOffsetX = { it },
-                    animationSpec = tween(300)
+                    animationSpec = tween(500)
                 )
             },
             exitTransition = {
                 slideOutHorizontally(
-                    targetOffsetX = { -it },
-                    animationSpec = tween(300)
+                    targetOffsetX = { it },
+                    animationSpec = tween(500)
                 )
             }
         ) { backStackEntry ->
