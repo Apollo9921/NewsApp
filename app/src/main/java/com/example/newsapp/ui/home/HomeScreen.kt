@@ -1,4 +1,4 @@
-package com.example.newsapp.ui
+package com.example.newsapp.ui.home
 
 import android.content.Context
 import android.widget.Toast
@@ -127,7 +127,15 @@ private fun TopBarContent() {
     val noInternetConnection = stringResource(id = R.string.noInternetConnection)
     var search by rememberSaveable { mutableStateOf("") }
     Text(
-        text = stringResource(id = R.string.app_name),
+        text =
+        if (viewModel.news.value == null)
+            stringResource(id = R.string.app_name)
+        else
+            if (viewModel.news.value?.articles?.isEmpty() == true)
+                stringResource(id = R.string.app_name)
+            else
+            viewModel.news.value?.articles?.first()?.source?.name
+                ?: stringResource(id = R.string.app_name),
         color = White,
         fontWeight = FontWeight.W500,
         textAlign = TextAlign.Center,
@@ -289,56 +297,41 @@ private fun NewsList(newsList: News?, padding: PaddingValues, navController: Nav
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    if (news?.get(index)?.urlToImage != null) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(news[index].urlToImage)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = null,
-                            placeholder = painterResource(R.drawable.no_image),
-                            error = painterResource(R.drawable.no_image),
-                            modifier = Modifier
-                                .size(
-                                    if (mediaQueryWidth() < small) {
-                                        100.dp
-                                    } else if (mediaQueryWidth() < normal) {
-                                        200.dp
-                                    } else {
-                                        300.dp
-                                    }
-                                )
-                        )
-                        Text(
-                            text = news[index].source.name,
-                            textAlign = TextAlign.Start,
-                            fontWeight = FontWeight.Bold,
-                            fontSize =
-                            if (mediaQueryWidth() < small) {
-                                12.sp
-                            } else if (mediaQueryWidth() < normal) {
-                                17.sp
-                            } else {
-                                20.sp
-                            }
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(R.drawable.no_image),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(
-                                    if (mediaQueryWidth() < small) {
-                                        100.dp
-                                    } else if (mediaQueryWidth() < normal) {
-                                        200.dp
-                                    } else {
-                                        300.dp
-                                    }
-                                )
-                        )
-                    }
+                if (news?.get(index)?.urlToImage != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(news[index].urlToImage)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        placeholder = painterResource(R.drawable.no_image),
+                        error = painterResource(R.drawable.no_image),
+                        modifier = Modifier
+                            .size(
+                                if (mediaQueryWidth() < small) {
+                                    100.dp
+                                } else if (mediaQueryWidth() < normal) {
+                                    200.dp
+                                } else {
+                                    300.dp
+                                }
+                            )
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(R.drawable.no_image),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(
+                                if (mediaQueryWidth() < small) {
+                                    100.dp
+                                } else if (mediaQueryWidth() < normal) {
+                                    200.dp
+                                } else {
+                                    300.dp
+                                }
+                            )
+                    )
                 }
                 Spacer(modifier = Modifier.padding(10.dp))
                 Column(

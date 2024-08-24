@@ -8,8 +8,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.newsapp.ui.DetailScreen
-import com.example.newsapp.ui.HomeScreen
+import com.example.newsapp.ui.details.DetailScreen
+import com.example.newsapp.ui.home.HomeScreen
 
 @Composable
 fun NavGraph(navController: NavHostController, startDestination: Destination = Destination.Home) {
@@ -17,7 +17,14 @@ fun NavGraph(navController: NavHostController, startDestination: Destination = D
         navController = navController,
         startDestination = startDestination
     ) {
-        composable<Destination.Home> {
+        composable<Destination.Home>(
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                )
+            }
+        ) {
             HomeScreen(navController)
         }
         composable<Destination.Detail>(

@@ -1,4 +1,4 @@
-package com.example.newsapp.ui
+package com.example.newsapp.ui.details
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -175,5 +175,6 @@ private fun Content(
             text = content,
             style = MaterialTheme.typography.bodyMedium
         )
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
